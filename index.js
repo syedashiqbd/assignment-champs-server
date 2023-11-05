@@ -29,9 +29,14 @@ async function run() {
       .db('assignments')
       .collection('published');
 
-    // assignment get apis
+    // all assignment get apis
+    app.get('/assignments', async (req, res) => {
+      const cursor = assignmentCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
-    // assignment post apis
+    // single assignment post apis
     app.post('/assignment', async (req, res) => {
       const singleAssignment = req.body;
 
