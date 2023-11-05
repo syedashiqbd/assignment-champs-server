@@ -23,7 +23,22 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+
+    const assignmentCollection = client
+      .db('assignments')
+      .collection('published');
+
+    // assignment get apis
+
+    // assignment post apis
+    app.post('/assignment', async (req, res) => {
+      const singleAssignment = req.body;
+
+      const result = await assignmentCollection.insertOne(singleAssignment);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
     console.log(
