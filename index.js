@@ -46,6 +46,13 @@ async function run() {
       res.send(result);
     });
 
+    //submitted assignment get apis
+    app.get('/submitAssignment', async (req, res) => {
+      const cursor = submitAssignmentCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // single assignment post apis
     app.post('/assignment', async (req, res) => {
       const singleAssignment = req.body;
