@@ -35,12 +35,43 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    //to get single assignment by id api
+    app.get('/assignments/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await assignmentCollection.findOne(query);
+      res.send(result);
+    });
 
     // single assignment post apis
     app.post('/assignment', async (req, res) => {
       const singleAssignment = req.body;
 
       const result = await assignmentCollection.insertOne(singleAssignment);
+      res.send(result);
+    });
+
+    // to update assignment api
+    app.put('/assignments/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateAssignment = req.body;
+      const assignment = {
+        $set: {
+          assignment_title: updateAssignment.assignment_title,
+          description: updateAssignment.description,
+          marks: updateAssignment.marks,
+          difficulty: updateAssignment.difficulty,
+          dueDate: updateAssignment.updateDueDate,
+          thumbnail: updateAssignment.thumbnail,
+        },
+      };
+      const result = await assignmentCollection.updateOne(
+        filter,
+        assignment,
+        options
+      );
       res.send(result);
     });
 
