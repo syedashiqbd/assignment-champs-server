@@ -28,6 +28,9 @@ async function run() {
     const assignmentCollection = client
       .db('assignments')
       .collection('published');
+    const submitAssignmentCollection = client
+      .db('assignments')
+      .collection('submitted');
 
     // all assignment get apis
     app.get('/assignments', async (req, res) => {
@@ -46,8 +49,13 @@ async function run() {
     // single assignment post apis
     app.post('/assignment', async (req, res) => {
       const singleAssignment = req.body;
-
       const result = await assignmentCollection.insertOne(singleAssignment);
+      res.send(result);
+    });
+
+    app.post('/submitAssignment', async (req, res) => {
+      const submit = req.body;
+      const result = await submitAssignmentCollection.insertOne(submit);
       res.send(result);
     });
 
