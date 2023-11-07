@@ -48,12 +48,21 @@ async function run() {
 
     //submitted assignment get apis
     app.get('/submitAssignment', async (req, res) => {
-      let queryObj = {};
+      let statusQueryObj = {};
       const status = req.query.status;
       if (status) {
-        queryObj.status = status;
+        statusQueryObj.status = status;
       }
-      const cursor = submitAssignmentCollection.find(queryObj);
+      let submitByQueryObj = {};
+      const submitBy = req.query.submitBy;
+      if (submitBy) {
+        submitByQueryObj.submitBy = submitBy;
+      }
+
+      const cursor = submitAssignmentCollection.find({
+        ...statusQueryObj,
+        ...submitByQueryObj,
+      });
       const result = await cursor.toArray();
       res.send(result);
     });
