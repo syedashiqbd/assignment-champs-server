@@ -48,7 +48,12 @@ async function run() {
 
     //submitted assignment get apis
     app.get('/submitAssignment', async (req, res) => {
-      const cursor = submitAssignmentCollection.find();
+      let queryObj = {};
+      const status = req.query.status;
+      if (status) {
+        queryObj.status = status;
+      }
+      const cursor = submitAssignmentCollection.find(queryObj);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -85,6 +90,27 @@ async function run() {
       const result = await assignmentCollection.updateOne(
         filter,
         assignment,
+        options
+      );
+      res.send(result);
+    });
+    // submit assignment for mark update api
+    app.patch('/submitAssignment/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateMark = req.body;
+      const submitMarkAssignment = {
+        $set: {
+          givenMark: updateMark.givenMark,
+          feedback: updateMark.feedback,
+          markBy: updateMark.markBy,
+          status: updateMark.status,
+        },
+      };
+      const result = await submitAssignmentCollection.updateOne(
+        filter,
+        submitMarkAssignment,
         options
       );
       res.send(result);
