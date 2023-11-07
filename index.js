@@ -12,8 +12,8 @@ app.use(
   cors({
     origin: [
       'http://localhost:5173',
-      // 'https://car-doctor-ashiq.web.app',
-      // 'https://car-doctor-ashiq.firebaseapp.com',
+      // 'https://assignment-champs-ashiq.web.app',
+      // 'https://assignment-champs-ashiq.firebaseapp.com',
     ],
     credentials: true,
   })
