@@ -1,13 +1,26 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      'http://localhost:5173',
+      // 'https://car-doctor-ashiq.web.app',
+      // 'https://car-doctor-ashiq.firebaseapp.com',
+    ],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.igno3bw.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -19,6 +32,22 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// middleware for JWT
+const verifyToken = async (req, res, next) => {
+  const token = req?.cookies?.token;
+  // console.log('this token from middleware =', token);
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: 'forbidden access' });
+    }
+    req.user = decoded;
+    next();
+  });
+};
 
 async function run() {
   try {
@@ -32,6 +61,29 @@ async function run() {
     const submitAssignmentCollection = client
       .db('assignments')
       .collection('submitted');
+
+    // auth related api
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1h',
+      });
+      res
+        .cookie('token', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+        })
+        .send({ success: true });
+    });
+
+    app.post('/logout', (req, res) => {
+      const user = req.body;
+      console.log(user);
+      res
+        .clearCookie('token', { maxAge: 0, secure: true, sameSite: 'none' })
+        .send({ success: true });
+    });
 
     // all assignment get apis
     app.get('/assignments', async (req, res) => {
@@ -57,16 +109,21 @@ async function run() {
     });
 
     //submitted assignment get apis
-    app.get('/submitAssignment', async (req, res) => {
+    app.get('/submitAssignment', verifyToken, async (req, res) => {
       let statusQueryObj = {};
       const status = req.query.status;
       if (status) {
         statusQueryObj.status = status;
       }
+
       let submitByQueryObj = {};
       const submitBy = req.query.submitBy;
       if (submitBy) {
         submitByQueryObj.submitBy = submitBy;
+      }
+
+      if (submitBy && req.user.email !== submitBy) {
+        return res.status(403).send({ message: 'forbidden' });
       }
 
       const cursor = submitAssignmentCollection.find({
