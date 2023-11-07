@@ -87,6 +87,9 @@ async function run() {
 
     // all assignment get apis
     app.get('/assignments', async (req, res) => {
+      const page = Number(req.query.page);
+      const limit = Number(req.query.limit);
+
       let difficultyQueryObj = {};
 
       const difficulty = req.query.difficulty;
@@ -95,9 +98,17 @@ async function run() {
         difficultyQueryObj.difficulty = difficulty;
       }
 
-      const cursor = assignmentCollection.find(difficultyQueryObj);
+      const cursor = assignmentCollection
+        .find(difficultyQueryObj)
+        .skip(page * limit)
+        .limit(limit);
       const result = await cursor.toArray();
       res.send(result);
+    });
+
+    app.get('/assignmentCount', async (req, res) => {
+      const total = await assignmentCollection.estimatedDocumentCount();
+      res.send({ total });
     });
 
     //to get single assignment by id api
