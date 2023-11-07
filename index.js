@@ -25,6 +25,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+    // Our Collections
     const assignmentCollection = client
       .db('assignments')
       .collection('published');
@@ -34,10 +35,19 @@ async function run() {
 
     // all assignment get apis
     app.get('/assignments', async (req, res) => {
-      const cursor = assignmentCollection.find();
+      let difficultyQueryObj = {};
+
+      const difficulty = req.query.difficulty;
+
+      if (difficulty) {
+        difficultyQueryObj.difficulty = difficulty;
+      }
+
+      const cursor = assignmentCollection.find(difficultyQueryObj);
       const result = await cursor.toArray();
       res.send(result);
     });
+
     //to get single assignment by id api
     app.get('/assignments/:id', async (req, res) => {
       const id = req.params.id;
